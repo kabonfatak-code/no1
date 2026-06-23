@@ -1,0 +1,24 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="com.example.demo.model.User,com.example.demo.util.TextUtils,com.example.demo.util.WebUtil" %>
+<%
+    String ctx = request.getContextPath();
+    User loginUser = WebUtil.getLoginUser(request);
+    String flash = WebUtil.consumeFlash(request);
+%>
+<header class="topbar">
+    <a class="brand" href="<%= ctx %>/posts">小型论坛 BBS</a>
+    <nav class="nav">
+        <a href="<%= ctx %>/posts">留言列表</a>
+        <% if (loginUser == null) { %>
+            <a href="<%= ctx %>/login">登录</a>
+            <a class="nav-strong" href="<%= ctx %>/register">注册</a>
+        <% } else { %>
+            <a class="nav-strong" href="<%= ctx %>/post/new">发表留言</a>
+            <span class="user-badge"><%= TextUtils.escapeHtml(loginUser.getUsername()) %><%= loginUser.isAdmin() ? " · 管理员" : "" %></span>
+            <a href="<%= ctx %>/logout">退出</a>
+        <% } %>
+    </nav>
+</header>
+<% if (flash != null && flash.length() > 0) { %>
+    <div class="flash"><%= TextUtils.escapeHtml(flash) %></div>
+<% } %>
