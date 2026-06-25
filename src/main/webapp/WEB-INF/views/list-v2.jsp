@@ -85,17 +85,18 @@
                     <article class="post-card">
                         <div class="post-card-head">
                             <div>
-                                <a class="post-title" href="<%= ctx %>/post/detail?id=<%= post.getId() %>"><%= TextUtils.escapeHtml(post.getTitle()) %></a>
+                                <div class="tag-row">
+                                    <% if (post.isPinned()) { %><span class="tag pin">置顶</span><% } %>
+                                    <span class="tag"><%= TextUtils.escapeHtml(post.getTopic()) %></span>
+                                    <span class="tag"><%= TextUtils.escapeHtml(post.getRegion()) %></span>
+                                </div>
+                                <a class="post-content-link" href="<%= ctx %>/post/detail?id=<%= post.getId() %>"><%= TextUtils.escapeHtml(post.getContent().length() > 120 ? post.getContent().substring(0, 120) + "..." : post.getContent()) %></a>
                                 <div class="post-meta">
-                                    <span><%= TextUtils.escapeHtml(post.getTopic()) %></span>
-                                    <span><%= TextUtils.escapeHtml(post.getRegion()) %></span>
                                     <span><%= TextUtils.escapeHtml(post.getAuthorUsername()) %> · <%= TextUtils.escapeHtml(ForumOptions.roleLabel(post.getAuthorRole())) %></span>
                                     <time><%= formatter.format(post.getCreatedAt()) %></time>
                                 </div>
                             </div>
-                            <% if (post.isPinned()) { %><span class="tag pin">置顶</span><% } %>
                         </div>
-                        <p class="post-excerpt"><%= TextUtils.escapeHtml(post.getContent().length() > 120 ? post.getContent().substring(0, 120) + "..." : post.getContent()) %></p>
                         <div class="stats">
                             <span>赞 <%= post.getLikeScore() %></span>
                             <span>踩 <%= post.getDislikeScore() %></span>

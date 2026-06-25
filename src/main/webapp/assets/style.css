@@ -169,6 +169,19 @@ h1 {
     overflow-wrap: anywhere;
 }
 
+.post-content-link {
+    display: block;
+    margin: 12px 0 8px;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.post-content-link:hover {
+    color: var(--primary);
+}
+
 .post-meta,
 .post-time {
     color: var(--muted);

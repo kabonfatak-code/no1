@@ -31,7 +31,7 @@
                         <strong><%= TextUtils.escapeHtml(notification.getMessage()) %></strong>
                         <time><%= formatter.format(notification.getCreatedAt()) %></time>
                     </div>
-                    <p class="post-meta">关联留言：<%= TextUtils.escapeHtml(notification.getPostTitle()) %></p>
+                    <p class="post-meta">点击查看对应留言或评论</p>
                 </a>
             <% } %>
         </section>

@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= TextUtils.escapeHtml(post.getTitle()) %> - BBS 论坛</title>
+    <title>留言详情 - BBS 论坛</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/style.css">
 </head>
 <body>
@@ -24,7 +24,6 @@
                     <span class="tag"><%= TextUtils.escapeHtml(post.getTopic()) %></span>
                     <span class="tag"><%= TextUtils.escapeHtml(post.getRegion()) %></span>
                 </div>
-                <h1><%= TextUtils.escapeHtml(post.getTitle()) %></h1>
                 <p>作者：<%= TextUtils.escapeHtml(post.getAuthorUsername()) %> · <%= TextUtils.escapeHtml(ForumOptions.roleLabel(post.getAuthorRole())) %> · <%= formatter.format(post.getCreatedAt()) %></p>
             </div>
             <% if (loginUser != null && (loginUser.isAdmin() || loginUser.getId() == post.getAuthorId())) { %>

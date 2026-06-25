@@ -33,7 +33,7 @@
                     <div class="post-card-head">
                         <div>
                             <a class="post-title" href="<%= ctx %>/post/detail?id=<%= report.getPostId() %><%= report.getTargetAnchor() %>">
-                                <%= TextUtils.escapeHtml("comment".equals(report.getTargetType()) ? "评论举报：" + report.getPostTitle() : "留言举报：" + report.getPostTitle()) %>
+                                <%= "comment".equals(report.getTargetType()) ? "评论举报" : "留言举报" %>
                             </a>
                             <div class="post-meta">
                                 <span>被举报用户：<%= TextUtils.escapeHtml(report.getTargetUsername()) %></span>

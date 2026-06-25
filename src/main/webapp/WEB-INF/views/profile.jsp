@@ -87,7 +87,12 @@
                 <section class="post-list">
                     <% for (Post post : myPosts) { %>
                         <article class="post-card">
-                            <a class="post-title" href="<%= ctx %>/post/detail?id=<%= post.getId() %>"><%= TextUtils.escapeHtml(post.getTitle()) %></a>
+                            <div class="tag-row">
+                                <% if (post.isPinned()) { %><span class="tag pin">置顶</span><% } %>
+                                <span class="tag"><%= TextUtils.escapeHtml(post.getTopic()) %></span>
+                                <span class="tag"><%= TextUtils.escapeHtml(post.getRegion()) %></span>
+                            </div>
+                            <a class="post-content-link" href="<%= ctx %>/post/detail?id=<%= post.getId() %>"><%= excerpt(post.getContent()) %></a>
                             <div class="post-meta"><%= formatter.format(post.getCreatedAt()) %> · 赞 <%= post.getLikeScore() %> · 收藏 <%= post.getFavoriteCount() %></div>
                             <div class="button-row">
                                 <a class="button" href="<%= ctx %>/post/edit?id=<%= post.getId() %>">编辑</a>
@@ -113,8 +118,15 @@
         StringBuilder html = new StringBuilder("<section class=\"post-list\">");
         for (Post post : posts) {
             html.append("<article class=\"post-card\">")
-                    .append("<a class=\"post-title\" href=\"").append(ctx).append("/post/detail?id=").append(post.getId()).append("\">")
-                    .append(TextUtils.escapeHtml(post.getTitle())).append("</a>")
+                    .append("<div class=\"tag-row\">");
+            if (post.isPinned()) {
+                html.append("<span class=\"tag pin\">置顶</span>");
+            }
+            html.append("<span class=\"tag\">").append(TextUtils.escapeHtml(post.getTopic())).append("</span>")
+                    .append("<span class=\"tag\">").append(TextUtils.escapeHtml(post.getRegion())).append("</span>")
+                    .append("</div>")
+                    .append("<a class=\"post-content-link\" href=\"").append(ctx).append("/post/detail?id=").append(post.getId()).append("\">")
+                    .append(excerpt(post.getContent())).append("</a>")
                     .append("<div class=\"post-meta\">").append(formatter.format(post.getCreatedAt()))
                     .append(" · 赞 ").append(post.getLikeScore())
                     .append(" · 收藏 ").append(post.getFavoriteCount())
@@ -122,5 +134,10 @@
         }
         html.append("</section>");
         return html.toString();
+    }
+
+    private String excerpt(String content) {
+        String text = content == null ? "" : content;
+        return TextUtils.escapeHtml(text.length() > 120 ? text.substring(0, 120) + "..." : text);
     }
 %>
