@@ -32,7 +32,7 @@
         </div>
     </section>
 
-    <section class="admin-section">
+    <section class="admin-section" data-admin-section="reports">
         <h2>举报情况</h2>
         <% if (reports == null || reports.isEmpty()) { %>
             <div class="empty-state small">暂无举报</div>
@@ -55,7 +55,7 @@
                     </div>
                     <p class="post-excerpt">原因：<%= TextUtils.escapeHtml(report.getReason()) %></p>
                     <% if (!report.isHandled()) { %>
-                        <form method="post" action="<%= ctx %>/admin/action" class="report-handle-form">
+                        <form method="post" action="<%= ctx %>/admin/action" class="report-handle-form ajax-admin-action">
                             <input type="hidden" name="action" value="report">
                             <input type="hidden" name="targetType" value="<%= report.getTargetType() %>">
                             <input type="hidden" name="targetId" value="<%= "comment".equals(report.getTargetType()) ? report.getCommentId() : report.getPostId() %>">
@@ -77,7 +77,7 @@
         <% } %>
     </section>
 
-    <section class="admin-section">
+    <section class="admin-section" data-admin-section="users">
         <h2>用户管理</h2>
         <div class="table-wrap">
             <table>
@@ -93,7 +93,7 @@
                 <tbody>
                 <% for (User item : users) { %>
                     <tr>
-                        <form method="post" action="<%= ctx %>/admin/action">
+                        <form method="post" action="<%= ctx %>/admin/action" class="ajax-admin-action">
                             <td><%= TextUtils.escapeHtml(item.getUsername()) %></td>
                             <td><input type="text" name="phone" value="<%= TextUtils.escapeHtml(item.getPhone()) %>"></td>
                             <td><%= TextUtils.escapeHtml(item.getRoleLabel()) %></td>
@@ -139,6 +139,7 @@
         </div>
         <%= renderPagination(userPageUrlPrefix, userCurrentPage, userTotalPages, "用户分页") %>
     </section>
+    <div class="inline-message" id="actionMessage" aria-live="polite"></div>
 </main></body>
 </html>
 <%!

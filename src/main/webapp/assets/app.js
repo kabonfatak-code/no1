@@ -125,6 +125,78 @@
         setStatText(root, "[data-comment-stat='dislikeScore']", comment.dislikeScore);
     }
 
+    function parseHtml(text) {
+        return new DOMParser().parseFromString(text, "text/html");
+    }
+
+    function fetchHtml(url) {
+        return fetch(url, {
+            method: "GET",
+            headers: {
+                "Accept": "text/html",
+                "X-Requested-With": "fetch"
+            },
+            credentials: "same-origin"
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+            return response.text();
+        }).then(parseHtml);
+    }
+
+    function refreshDetailComments(targetId) {
+        var comments = document.getElementById("comments");
+        if (!comments) {
+            return Promise.resolve();
+        }
+
+        return fetchHtml(window.location.href.split("#")[0]).then(function (doc) {
+            var freshComments = doc.getElementById("comments");
+            if (freshComments) {
+                comments.replaceWith(freshComments);
+            }
+
+            var freshStats = doc.querySelector("[data-post-stats]");
+            var currentStats = document.querySelector("[data-post-stats]");
+            if (freshStats && currentStats) {
+                currentStats.replaceWith(freshStats);
+            }
+
+            if (targetId) {
+                var target = document.getElementById(targetId);
+                if (target) {
+                    var list = target.closest("[data-reply-list]");
+                    if (list) {
+                        var button = document.querySelector("[data-reply-list-toggle][data-target='" + list.id + "']");
+                        setReplyListOpen(button, list, true);
+                    }
+                    target.scrollIntoView({block: "center"});
+                }
+            }
+        });
+    }
+
+    function replaceAdminSections(doc, sectionName) {
+        var selector = sectionName ? "[data-admin-section='" + sectionName + "']" : "[data-admin-section]";
+        doc.querySelectorAll(selector).forEach(function (freshSection) {
+            var name = freshSection.getAttribute("data-admin-section");
+            var currentSection = document.querySelector("[data-admin-section='" + name + "']");
+            if (currentSection) {
+                currentSection.replaceWith(freshSection);
+            }
+        });
+    }
+
+    function refreshAdmin(url, sectionName, pushState) {
+        return fetchHtml(url).then(function (doc) {
+            replaceAdminSections(doc, sectionName);
+            if (pushState) {
+                window.history.pushState({bbsAdmin: true}, "", url);
+            }
+        });
+    }
+
     document.addEventListener("click", function (event) {
         var replyListButton = event.target.closest("[data-reply-list-toggle]");
         if (replyListButton) {
@@ -186,6 +258,15 @@
 
         var button = event.target.closest("[data-sms-purpose]");
         if (!button) {
+            var pageLink = event.target.closest("[data-admin-section] .pagination a.page-link");
+            if (pageLink) {
+                event.preventDefault();
+                var adminSection = pageLink.closest("[data-admin-section]");
+                var sectionName = adminSection ? adminSection.getAttribute("data-admin-section") : null;
+                refreshAdmin(pageLink.href, sectionName, true).catch(function () {
+                    window.location.href = pageLink.href;
+                });
+            }
             return;
         }
 
@@ -232,6 +313,46 @@
     });
 
     document.addEventListener("submit", function (event) {
+        var adminForm = event.target.closest("form.ajax-admin-action");
+        if (adminForm) {
+            event.preventDefault();
+            var adminSubmitter = event.submitter;
+            var adminBody = new URLSearchParams(new FormData(adminForm));
+            if (adminSubmitter && adminSubmitter.name) {
+                adminBody.set(adminSubmitter.name, adminSubmitter.value);
+            }
+            if (adminSubmitter) {
+                adminSubmitter.disabled = true;
+            }
+
+            fetch(new URL(adminForm.getAttribute("action"), window.location.href).toString(), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                    "X-Requested-With": "fetch"
+                },
+                body: adminBody.toString(),
+                credentials: "same-origin"
+            }).then(function (response) {
+                return response.json();
+            }).then(function (data) {
+                showActionMessage(data.message, data.ok);
+                if (data.ok) {
+                    return refreshAdmin(window.location.href, null, false).catch(function () {
+                        showActionMessage("操作已完成，请手动刷新查看最新内容", false);
+                    });
+                }
+                return null;
+            }).catch(function () {
+                showActionMessage("操作失败，请稍后再试", false);
+            }).finally(function () {
+                if (adminSubmitter) {
+                    adminSubmitter.disabled = false;
+                }
+            });
+            return;
+        }
+
         var form = event.target.closest("form.ajax-action");
         if (!form) {
             return;
@@ -270,6 +391,7 @@
                 updateCommentStats(data.comment);
 
                 var action = body.get("action");
+                var isCommentAction = actionUrl.indexOf("/comment/action") !== -1;
                 if (action === "report") {
                     var reason = form.querySelector("input[name='reason']");
                     if (reason) {
@@ -302,6 +424,12 @@
                         addFields.classList.add("hidden");
                         form.classList.remove("is-expanded");
                     }
+                }
+                if (isCommentAction && (action === "add" || action === "edit" || action === "delete")) {
+                    var targetId = data.comment && data.comment.id ? "comment-" + data.comment.id : "comments";
+                    return refreshDetailComments(targetId).catch(function () {
+                        showActionMessage("操作已完成，请手动刷新查看最新内容", false);
+                    });
                 }
             }
         }).catch(function () {
@@ -346,5 +474,12 @@
         window.setTimeout(checkSessionStatus, 5000);
         window.setInterval(checkSessionStatus, 15000);
     }
+    window.addEventListener("popstate", function () {
+        if (document.querySelector("[data-admin-section]")) {
+            refreshAdmin(window.location.href, null, false).catch(function () {
+                window.location.reload();
+            });
+        }
+    });
     expandReplyListForHash();
 })();

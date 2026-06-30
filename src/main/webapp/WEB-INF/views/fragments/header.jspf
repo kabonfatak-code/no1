@@ -36,7 +36,7 @@
     window.BBS_CONTEXT = "<%= TextUtils.escapeHtml(ctx) %>";
     window.BBS_LOGGED_IN = <%= loginUser != null %>;
 </script>
-<script src="<%= ctx %>/assets/app.js?v=20260626-nested-replies" defer></script>
+<script src="<%= ctx %>/assets/app.js?v=20260630-dynamic-updates" defer></script>
 <% if (flash != null && flash.length() > 0) { %>
     <div class="flash"><%= TextUtils.escapeHtml(flash) %></div>
 <% } %>

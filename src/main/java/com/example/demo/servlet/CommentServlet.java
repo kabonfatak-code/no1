@@ -51,7 +51,7 @@ public class CommentServlet extends HttpServlet {
                         WebUtil.getClientProvince(request)
                 );
                 anchor = "#comment-" + comment.getId();
-                message = parentCommentId > 0 ? "回复已发表，刷新后可见" : "评论已发表，刷新后可见";
+                message = parentCommentId > 0 ? "回复已发表" : "评论已发表";
                 freshComment = comment;
             } else if ("edit".equals(action)) {
                 repository.updateComment(user, commentId, request.getParameter("content"));
@@ -63,7 +63,7 @@ public class CommentServlet extends HttpServlet {
                 repository.deleteComment(user, commentId);
                 postId = comment == null ? postId : comment.getPostId();
                 anchor = "#comments";
-                message = "评论已删除，刷新后不再显示";
+                message = "评论已删除";
             } else if ("like".equals(action)) {
                 repository.voteComment(user, commentId, 1);
                 anchor = "#comment-" + commentId;

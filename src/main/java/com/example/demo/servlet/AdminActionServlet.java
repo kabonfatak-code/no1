@@ -19,11 +19,18 @@ public class AdminActionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         User user = WebUtil.getLoginUser(request);
         if (user == null || !user.isAdmin()) {
+            if (isAjax(request)) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                writeJson(response, false, "没有权限");
+                return;
+            }
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
         String action = TextUtils.trim(request.getParameter("action"));
+        String message = "操作已完成";
+        boolean ok = true;
         try {
             BbsRepository repository = WebUtil.getRepository(getServletContext());
             if ("user".equals(action)) {
@@ -47,10 +54,10 @@ public class AdminActionServlet extends HttpServlet {
                         banned,
                         banDays
                 );
-                WebUtil.setFlash(request, "用户信息已更新");
+                message = "用户信息已更新";
             } else if ("pin".equals(action)) {
                 repository.setPostPinned(WebUtil.parseLong(request.getParameter("postId"), -1L), "1".equals(request.getParameter("pinned")));
-                WebUtil.setFlash(request, "帖子置顶状态已更新");
+                message = "帖子置顶状态已更新";
             } else if ("report".equals(action)) {
                 repository.handleReport(
                         TextUtils.trim(request.getParameter("targetType")),
@@ -58,12 +65,38 @@ public class AdminActionServlet extends HttpServlet {
                         user.getId(),
                         WebUtil.parseInt(request.getParameter("banDays"), 0)
                 );
-                WebUtil.setFlash(request, "举报已标记处理");
+                message = "举报已标记处理";
+            } else {
+                ok = false;
+                message = "未知操作";
             }
         } catch (IllegalArgumentException | SQLException e) {
-            WebUtil.setFlash(request, e.getMessage());
+            ok = false;
+            message = e.getMessage();
         }
 
+        if (isAjax(request)) {
+            writeJson(response, ok, message);
+            return;
+        }
+
+        WebUtil.setFlash(request, message);
         response.sendRedirect(request.getContextPath() + "/admin");
+    }
+
+    private boolean isAjax(HttpServletRequest request) {
+        return "fetch".equalsIgnoreCase(request.getHeader("X-Requested-With"));
+    }
+
+    private void writeJson(HttpServletResponse response, boolean ok, String message) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"ok\":" + ok + ",\"message\":\"" + jsonEscape(message) + "\"}");
+    }
+
+    private String jsonEscape(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "\\r").replace("\n", "\\n");
     }
 }
